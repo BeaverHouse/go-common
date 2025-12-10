@@ -1,0 +1,25 @@
+# Conventional Commits
+#
+# Usage:
+#   - fix: → patch (v0.0.1)
+#   - feat: → minor (v0.1.0)
+#   - feat!: 또는 BREAKING CHANGE: → major (v1.0.0)
+
+name: release-please
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v4
+        with:
+          release-type: go
