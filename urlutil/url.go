@@ -3,24 +3,26 @@ package urlutil
 import (
 	"net/url"
 	"strings"
+
+	"github.com/BeaverHouse/go-common/errorhandle"
 )
 
 // NormalizeURL adds https:// prefix if URL doesn't have a protocol scheme,
 // and validates the final URL format
 func NormalizeURL(inputURL string) (string, error) {
-	normalizedURL := strings.TrimSpace(inputURL)
-	if normalizedURL == "" {
+	parsedURL := strings.TrimSpace(inputURL)
+	if parsedURL == "" {
 		return "", nil
 	}
 
-	if !strings.HasPrefix(normalizedURL, "http://") && !strings.HasPrefix(normalizedURL, "https://") {
-		normalizedURL = "https://" + normalizedURL
+	if !strings.HasPrefix(parsedURL, "http://") && !strings.HasPrefix(parsedURL, "https://") {
+		parsedURL = "https://" + parsedURL
 	}
 
-	_, err := url.Parse(normalizedURL)
+	_, err := url.Parse(parsedURL)
 	if err != nil {
-		return "", err
+		return "", errorhandle.ErrValidationFailed("invalid URL format: " + parsedURL)
 	}
 
-	return normalizedURL, nil
+	return parsedURL, nil
 }
