@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/BeaverHouse/go-common/compare/v1.0.1...v1.0.2) (2025-12-11)
+
+
+### Bug Fixes
+
+* update test for NewZapLogger return type change ([080ece7](https://github.com/BeaverHouse/go-common/commit/080ece73fa5c81d96e5027a9425efc42b2048e4e))
+
 ## [1.0.1](https://github.com/BeaverHouse/go-common/compare/v1.0.0...v1.0.1) (2025-12-10)
 
 
