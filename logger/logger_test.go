@@ -48,8 +48,5 @@ func TestZapLoggerMethods(t *testing.T) {
 func TestZapLoggerGetUnderlying(t *testing.T) {
 	logger, err := NewZapLogger()
 	assert.NoError(t, err)
-
-	zapLogger, ok := logger.(*ZapLogger)
-	assert.True(t, ok)
-	assert.NotNil(t, zapLogger.GetZapLogger())
+	assert.NotNil(t, logger.GetZapLogger())
 }
