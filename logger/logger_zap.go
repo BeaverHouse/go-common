@@ -11,7 +11,7 @@ type ZapLogger struct {
 }
 
 // NewZapLogger creates a new ZapLogger for web server use
-func NewZapLogger() (Logger, error) {
+func NewZapLogger() (*ZapLogger, error) {
 	config := zap.NewProductionConfig()
 	config.EncoderConfig.TimeKey = "timestamp"
 	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
