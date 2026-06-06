@@ -1,0 +1,54 @@
+# Manual date-based release.
+#
+# Run this workflow from the Actions tab when you want to cut a release.
+# It creates and pushes an annotated tag and a GitHub release.
+#
+# Default tag format: v1.0.<YYYYMMDD> (e.g. v1.0.20260605).
+# NOTE: the originally requested "1.0.MMDDYY" order is intentionally NOT used —
+# leading-zero months/days are invalid SemVer (Go module resolution rejects
+# them) and MMDDYY does not sort chronologically. YYYYMMDD is valid SemVer and
+# sorts in release order. Set the `version` input to override with any value.
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Tag to create (default v1.0.<YYYYMMDD>). Must be valid SemVer with a leading v."
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve version
+        id: ver
+        run: |
+          v="${{ github.event.inputs.version }}"
+          if [ -z "$v" ]; then
+            v="v1.0.$(date -u +%Y%m%d)"
+          fi
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+
+      - name: Create and push tag
+        run: |
+          v="${{ steps.ver.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "$v" -m "Release $v"
+          git push origin "$v"
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          v="${{ steps.ver.outputs.version }}"
+          gh release create "$v" --title "$v" --generate-notes
