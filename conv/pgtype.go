@@ -4,12 +4,18 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // Naming: each pgtype has a symmetric pair named by the PG type —
 // FromPg<Type> (pgtype -> Go pointer, nil when NULL) and
-// ToPg<Type> (Go pointer -> pgtype, invalid when nil).
+// ToPg<Type> (Go pointer -> pgtype, invalid when nil). A few variants at the end of
+// each section cover non-pointer or string representations.
+
+// =============================================================================
+// pgtype -> Go
+// =============================================================================
 
 // FromPgText converts pgtype.Text to *string
 func FromPgText(v pgtype.Text) *string {
@@ -72,6 +78,40 @@ func FromPgNumeric(v pgtype.Numeric) *float64 {
 	return &f.Float64
 }
 
+// FromPgUUID converts pgtype.UUID to *uuid.UUID (nil when NULL).
+func FromPgUUID(v pgtype.UUID) *uuid.UUID {
+	if !v.Valid {
+		return nil
+	}
+	u := uuid.UUID(v.Bytes)
+	return &u
+}
+
+// FromPgDateString formats pgtype.Date as a "YYYY-MM-DD" string (nil when NULL). Use
+// when an API represents a date-only value as a string rather than a time.Time.
+func FromPgDateString(v pgtype.Date) *string {
+	if !v.Valid {
+		return nil
+	}
+	s := v.Time.Format("2006-01-02")
+	return &s
+}
+
+// FromPgTimestamptzOrZero converts pgtype.Timestamptz to a time.Time value,
+// returning the zero time when NULL/invalid. Use it when a zero fallback is fine
+// and you don't need to tell NULL apart; use FromPgTimestamptz (returns *time.Time)
+// when you do.
+func FromPgTimestamptzOrZero(v pgtype.Timestamptz) time.Time {
+	if !v.Valid {
+		return time.Time{}
+	}
+	return v.Time
+}
+
+// =============================================================================
+// Go -> pgtype
+// =============================================================================
+
 // ToPgText converts *string to pgtype.Text
 func ToPgText(s *string) pgtype.Text {
 	if s == nil {
@@ -131,4 +171,25 @@ func ToPgNumeric(f *float64) pgtype.Numeric {
 		return pgtype.Numeric{Valid: false}
 	}
 	return n
+}
+
+// ToPgUUID converts uuid.UUID to pgtype.UUID. The nil UUID maps to invalid (NULL).
+func ToPgUUID(u uuid.UUID) pgtype.UUID {
+	if u == uuid.Nil {
+		return pgtype.UUID{Valid: false}
+	}
+	return pgtype.UUID{Bytes: u, Valid: true}
+}
+
+// ToPgDateString parses a "YYYY-MM-DD" string into pgtype.Date (invalid when nil,
+// empty, or unparseable).
+func ToPgDateString(s *string) pgtype.Date {
+	if s == nil || *s == "" {
+		return pgtype.Date{Valid: false}
+	}
+	t, err := time.Parse("2006-01-02", *s)
+	if err != nil {
+		return pgtype.Date{Valid: false}
+	}
+	return pgtype.Date{Time: t, Valid: true}
 }

@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/assert"
 )
@@ -286,6 +287,35 @@ func TestToPgNumeric(t *testing.T) {
 		assert.NoError(t, err)
 		assert.InDelta(t, 12.5, f.Float64, 1e-9)
 	})
+}
+
+func TestPgUUIDRoundTrip(t *testing.T) {
+	u := uuid.New()
+	pg := ToPgUUID(u)
+	assert.True(t, pg.Valid)
+	if got := FromPgUUID(pg); assert.NotNil(t, got) {
+		assert.Equal(t, u, *got)
+	}
+	assert.False(t, ToPgUUID(uuid.Nil).Valid)
+	assert.Nil(t, FromPgUUID(pgtype.UUID{Valid: false}))
+}
+
+func TestFromPgTimestamptzOrZero(t *testing.T) {
+	now := time.Now()
+	assert.Equal(t, now, FromPgTimestamptzOrZero(pgtype.Timestamptz{Time: now, Valid: true}))
+	assert.True(t, FromPgTimestamptzOrZero(pgtype.Timestamptz{Valid: false}).IsZero())
+}
+
+func TestPgDateString(t *testing.T) {
+	const day = "2026-06-07"
+	pg := ToPgDateString(strPtr(day))
+	if assert.True(t, pg.Valid) {
+		assert.Equal(t, day, *FromPgDateString(pg))
+	}
+	for _, bad := range []*string{nil, strPtr(""), strPtr("not-a-date")} {
+		assert.False(t, ToPgDateString(bad).Valid)
+	}
+	assert.Nil(t, FromPgDateString(pgtype.Date{Valid: false}))
 }
 
 func strPtr(s string) *string {

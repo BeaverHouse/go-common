@@ -6,11 +6,17 @@ import (
 	"net/http"
 )
 
-// Kind is a protocol-agnostic error category. Core logic raises errors by Kind;
-// each adapter (HTTP, MCP, CLI) maps the Kind to its own representation
-// (HTTP status, error text, exit code) at the boundary, so business logic never
-// depends on a transport. The set mirrors the categories used by gRPC codes and
-// Kubernetes apimachinery status reasons.
+// Kind is a protocol-agnostic error category, named after Rob Pike's Upspin
+// errors.Kind (gRPC calls it codes.Code; Kubernetes, StatusReason). Core logic
+// raises errors by Kind; each adapter (HTTP, MCP, CLI) maps the Kind to its own
+// representation (HTTP status, error text, exit code) at the boundary, so business
+// logic never depends on a transport.
+//
+// This is a CLOSED, generic taxonomy of standard status categories — not a registry
+// of domain errors. go-common owns the categories; services own their error
+// instances (errorhandle.New/Wrap with an existing Kind) and must NOT add
+// business-specific Kinds here. New values are added only to fill a missing
+// standard status category, which is rare.
 type Kind int
 
 const (
@@ -31,6 +37,9 @@ const (
 	KindFailedPrecondition
 	// KindUnavailable is a transient failure that the caller may retry.
 	KindUnavailable
+	// KindPaymentRequired means payment or quota (e.g. a subscription tier) is
+	// required before the request can proceed.
+	KindPaymentRequired
 )
 
 // Error is a structured, protocol-agnostic domain error. Code is a stable,
@@ -74,8 +83,7 @@ func Wrap(kind Kind, code, message string, cause error) *Error {
 // KindOf reports the Kind of err, unwrapping as needed. A nil error or an error
 // that is not an *Error is reported as KindInternal.
 func KindOf(err error) Kind {
-	var e *Error
-	if errors.As(err, &e) {
+	if e, ok := errors.AsType[*Error](err); ok {
 		return e.Kind
 	}
 	return KindInternal
@@ -99,6 +107,8 @@ func HTTPStatus(kind Kind) int {
 		return http.StatusUnprocessableEntity
 	case KindUnavailable:
 		return http.StatusServiceUnavailable
+	case KindPaymentRequired:
+		return http.StatusPaymentRequired
 	default:
 		return http.StatusInternalServerError
 	}
