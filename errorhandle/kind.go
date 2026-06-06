@@ -83,8 +83,7 @@ func Wrap(kind Kind, code, message string, cause error) *Error {
 // KindOf reports the Kind of err, unwrapping as needed. A nil error or an error
 // that is not an *Error is reported as KindInternal.
 func KindOf(err error) Kind {
-	var e *Error
-	if errors.As(err, &e) {
+	if e, ok := errors.AsType[*Error](err); ok {
 		return e.Kind
 	}
 	return KindInternal
