@@ -8,6 +8,10 @@
 dist/
 vendor/
 
+# Local Go workspace (never committed)
+go.work
+go.work.sum
+
 # Custom gitignored files
 .agent-check-result.json
 .agent-cache/
