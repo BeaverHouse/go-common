@@ -43,6 +43,7 @@ func TestHTTPStatus(t *testing.T) {
 		KindPermissionDenied:   http.StatusForbidden,
 		KindFailedPrecondition: http.StatusUnprocessableEntity,
 		KindUnavailable:        http.StatusServiceUnavailable,
+		KindPaymentRequired:    http.StatusPaymentRequired,
 	}
 	for kind, want := range cases {
 		assert.Equal(t, want, HTTPStatus(kind))
