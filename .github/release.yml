@@ -1,0 +1,8 @@
+# Auto-generated release notes config (used by `gh release create --generate-notes`).
+# Maintenance PRs are kept out of the user-facing changelog. Label PRs per the
+# fleet taxonomy (austincli github standardize) for this to take effect.
+changelog:
+  exclude:
+    labels:
+      - CI/CD
+      - Chore
