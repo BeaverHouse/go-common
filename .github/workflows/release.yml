@@ -34,7 +34,8 @@ jobs:
         run: |
           v="${{ github.event.inputs.version }}"
           if [ -z "$v" ]; then
-            v="v1.0.$(date -u +%Y%m%d)"
+            # Date in KST (release cadence is one tag per local day, not UTC day).
+            v="v1.0.$(TZ=Asia/Seoul date +%Y%m%d)"
           fi
           echo "version=$v" >> "$GITHUB_OUTPUT"
 
