@@ -45,12 +45,15 @@ const (
 // Error is a structured, protocol-agnostic domain error. Code is a stable,
 // service-defined identifier (e.g. "USER_NOT_FOUND") for catalogs, metrics, and
 // i18n; it must not embed a transport status such as an HTTP code. Err, when
-// set, is the wrapped cause and is reachable via errors.Is / errors.As.
+// set, is the wrapped cause and is reachable via errors.Is / errors.As. Details,
+// when set via WithDetails, carries structured context an adapter may surface
+// alongside the message (e.g. an HTTP body's data field).
 type Error struct {
 	Kind    Kind
 	Code    string
 	Message string
 	Err     error
+	Details any
 }
 
 // Error implements the error interface.
@@ -78,6 +81,23 @@ func New(kind Kind, code, message string) *Error {
 // Wrap creates an Error that wraps cause with the given kind, code, and message.
 func Wrap(kind Kind, code, message string, cause error) *Error {
 	return &Error{Kind: kind, Code: code, Message: message, Err: cause}
+}
+
+// WithDetails attaches structured context to the error and returns the receiver,
+// for the rare case an adapter must surface a data payload alongside the message
+// (e.g. an HTTP 409 listing the conflicting resources).
+func (e *Error) WithDetails(details any) *Error {
+	e.Details = details
+	return e
+}
+
+// DetailsOf returns the structured details attached to err via WithDetails,
+// unwrapping as needed; nil when none.
+func DetailsOf(err error) any {
+	if e, ok := errors.AsType[*Error](err); ok {
+		return e.Details
+	}
+	return nil
 }
 
 // KindOf reports the Kind of err, unwrapping as needed. A nil error or an error
