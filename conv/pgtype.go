@@ -65,6 +65,13 @@ func FromPgBool(v pgtype.Bool) *bool {
 	return &v.Bool
 }
 
+// FromPgBoolOrFalse converts pgtype.Bool to a bool value, returning false when
+// NULL/invalid. Use it when a false fallback is fine and you don't need to tell
+// NULL apart; use FromPgBool (returns *bool) when you do.
+func FromPgBoolOrFalse(v pgtype.Bool) bool {
+	return v.Valid && v.Bool
+}
+
 // FromPgNumeric converts pgtype.Numeric to *float64. Returns nil when the value
 // is NULL or cannot be represented as a float64 (NaN/Inf).
 func FromPgNumeric(v pgtype.Numeric) *float64 {
