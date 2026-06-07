@@ -78,6 +78,14 @@ func FromPgNumeric(v pgtype.Numeric) *float64 {
 	return &f.Float64
 }
 
+// FromPgFloat8 converts pgtype.Float8 to *float64
+func FromPgFloat8(v pgtype.Float8) *float64 {
+	if !v.Valid {
+		return nil
+	}
+	return &v.Float64
+}
+
 // FromPgUUID converts pgtype.UUID to *uuid.UUID (nil when NULL).
 func FromPgUUID(v pgtype.UUID) *uuid.UUID {
 	if !v.Valid {
@@ -171,6 +179,14 @@ func ToPgNumeric(f *float64) pgtype.Numeric {
 		return pgtype.Numeric{Valid: false}
 	}
 	return n
+}
+
+// ToPgFloat8 converts *float64 to pgtype.Float8
+func ToPgFloat8(f *float64) pgtype.Float8 {
+	if f == nil {
+		return pgtype.Float8{Valid: false}
+	}
+	return pgtype.Float8{Float64: *f, Valid: true}
 }
 
 // ToPgUUID converts uuid.UUID to pgtype.UUID. The nil UUID maps to invalid (NULL).
