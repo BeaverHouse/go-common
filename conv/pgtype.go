@@ -65,6 +65,13 @@ func FromPgBool(v pgtype.Bool) *bool {
 	return &v.Bool
 }
 
+// FromPgBoolOrFalse converts pgtype.Bool to a bool value, returning false when
+// NULL/invalid. Use it when a false fallback is fine and you don't need to tell
+// NULL apart; use FromPgBool (returns *bool) when you do.
+func FromPgBoolOrFalse(v pgtype.Bool) bool {
+	return v.Valid && v.Bool
+}
+
 // FromPgNumeric converts pgtype.Numeric to *float64. Returns nil when the value
 // is NULL or cannot be represented as a float64 (NaN/Inf).
 func FromPgNumeric(v pgtype.Numeric) *float64 {
@@ -76,6 +83,14 @@ func FromPgNumeric(v pgtype.Numeric) *float64 {
 		return nil
 	}
 	return &f.Float64
+}
+
+// FromPgFloat8 converts pgtype.Float8 to *float64
+func FromPgFloat8(v pgtype.Float8) *float64 {
+	if !v.Valid {
+		return nil
+	}
+	return &v.Float64
 }
 
 // FromPgUUID converts pgtype.UUID to *uuid.UUID (nil when NULL).
@@ -171,6 +186,14 @@ func ToPgNumeric(f *float64) pgtype.Numeric {
 		return pgtype.Numeric{Valid: false}
 	}
 	return n
+}
+
+// ToPgFloat8 converts *float64 to pgtype.Float8
+func ToPgFloat8(f *float64) pgtype.Float8 {
+	if f == nil {
+		return pgtype.Float8{Valid: false}
+	}
+	return pgtype.Float8{Float64: *f, Valid: true}
 }
 
 // ToPgUUID converts uuid.UUID to pgtype.UUID. The nil UUID maps to invalid (NULL).

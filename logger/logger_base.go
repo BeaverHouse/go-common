@@ -8,11 +8,6 @@ type Field struct {
 	Value any
 }
 
-// F creates a new Field
-func F(key string, value any) Field {
-	return Field{Key: key, Value: value}
-}
-
 // Logger is the interface for logging
 type Logger interface {
 	Info(msg string, fields ...Field)
